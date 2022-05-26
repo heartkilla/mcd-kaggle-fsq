@@ -1,3 +1,11 @@
+###
+# This repo-specific ignores
+###
+input/ 
+
+### 
+# Python gitignore template
+###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
