@@ -1,7 +1,7 @@
 ###
-# This repo-specific ignores
+# This repo specific ignores
 ###
-input/ 
+*.csv
 
 ### 
 # Python gitignore template
