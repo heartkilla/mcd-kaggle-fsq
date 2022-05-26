@@ -2,6 +2,7 @@
 # This repo specific ignores
 ###
 *.csv
+output/
 
 ### 
 # Python gitignore template
