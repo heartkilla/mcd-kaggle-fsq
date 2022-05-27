@@ -27,7 +27,7 @@ weight_decay = 1e-6
 device = torch.device('cuda')
 
 # Model config
-model_name = "distilbert-base-multilingual-cased"
+model_name = "xlm-roberta-base"
 tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
 max_length = 32
 

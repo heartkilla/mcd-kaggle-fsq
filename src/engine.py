@@ -65,7 +65,7 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
 
 
 @torch.inference_mode()
-def valid_one_epoch(model, dataloader, device, epoch):
+def valid_one_epoch(model, optimizer, dataloader, device, epoch):
     model.eval()
     
     dataset_size = 0
@@ -124,7 +124,7 @@ def run_training(model, optimizer, scheduler, train_loader, valid_loader, device
                                            dataloader=train_loader, 
                                            device=config.device, epoch=epoch)
         
-        val_epoch_loss = valid_one_epoch(model, valid_loader, device=config.device, epoch=epoch)
+        val_epoch_loss = valid_one_epoch(model, optimizer, valid_loader, device=config.device, epoch=epoch)
     
         history['Train Loss'].append(train_epoch_loss)
         history['Valid Loss'].append(val_epoch_loss)
@@ -137,7 +137,7 @@ def run_training(model, optimizer, scheduler, train_loader, valid_loader, device
         print(f"Validation Loss ({best_epoch_loss} ---> {val_epoch_loss})")
         best_epoch_loss = val_epoch_loss
         best_model_wts = copy.deepcopy(model.state_dict())
-        PATH = f"{OUT_DIR}{config.model_name}_epoch{epoch}.bin"
+        PATH = f"{config.OUT_DIR}{config.model_name}_epoch{epoch}.bin"
         torch.save(model.state_dict(), PATH)
         # Save a model file from the current directory
         print(f"Model Saved")
