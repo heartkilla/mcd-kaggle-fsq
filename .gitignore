@@ -3,6 +3,7 @@
 ###
 *.csv
 output/
+input/
 
 ### 
 # Python gitignore template

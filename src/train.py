@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 import torch.optim as optim
 from transformers import get_linear_schedule_with_warmup
 
-import config
+import configs.config001 as config
 import dataset
 import engine
 import models
