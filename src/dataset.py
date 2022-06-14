@@ -1,7 +1,7 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 
-import config
+import configs.config001 as CFG
 
 
 class FourSquareDataset(Dataset):
@@ -50,17 +50,12 @@ class FourSquareDataset(Dataset):
 
 
 def prepare_loaders(df_train, df_valid):
-    # df_train = df[df.kfold != fold].reset_index(drop=True)
-    # df_valid = df[df.kfold == fold].reset_index(drop=True)
-    # df_train, df_valid = train_test_split(df, random_state=CFG.seed, shuffle=True, test_size=0.3)
-    # df_valid = df_valid[df_valid.point_of_interest.isin(df_train.point_of_interest.unique())]
-    
-    train_dataset = FourSquareDataset(df_train, tokenizer=config.tokenizer, max_length=config.max_length)
-    valid_dataset = FourSquareDataset(df_valid, tokenizer=config.tokenizer, max_length=config.max_length)
-    
-    train_loader = DataLoader(train_dataset, batch_size=config.train_batch_size, 
+    train_dataset = FourSquareDataset(df_train, tokenizer=CFG.tokenizer, max_length=CFG.max_length)
+    valid_dataset = FourSquareDataset(df_valid, tokenizer=CFG.tokenizer, max_length=CFG.max_length)
+
+    train_loader = DataLoader(train_dataset, batch_size=CFG.train_batch_size, 
                               num_workers=2, shuffle=True, pin_memory=True, drop_last=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=config.valid_batch_size, 
+    valid_loader = DataLoader(valid_dataset, batch_size=CFG.valid_batch_size, 
                               num_workers=2, shuffle=False, pin_memory=True)
     
     return train_loader, valid_loader

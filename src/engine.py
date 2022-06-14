@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-import config
+import configs.config001 as CFG
 
 
 def criterion(outputs, labels):
@@ -37,12 +37,12 @@ def train_one_epoch(model, optimizer, scheduler, dataloader, device, epoch):
         
         outputs = model(ids, mask, latitude, longitude, coord_x, coord_y, coord_z, labels)
         loss = criterion(outputs, labels)
-        loss = loss / config.n_accumulate
+        loss = loss / CFG.n_accumulate
         loss.backward()
         
-        grad = nn.utils.clip_grad_norm_(model.parameters(), config.max_grad_norm)
+        grad = nn.utils.clip_grad_norm_(model.parameters(), CFG.max_grad_norm)
     
-        if (step + 1) % config.n_accumulate == 0:
+        if (step + 1) % CFG.n_accumulate == 0:
             optimizer.step()
 
             # zero the parameter gradients
@@ -109,7 +109,7 @@ def run_training(model, optimizer, scheduler, train_loader, valid_loader, device
         print("[INFO] Using GPU: {}\n".format(torch.cuda.get_device_name()))
 
     
-    margins = np.linspace(config.m_start, config.m_end, num_epochs)
+    margins = np.linspace(CFG.m_start, CFG.m_end, num_epochs)
     
     start = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -122,9 +122,9 @@ def run_training(model, optimizer, scheduler, train_loader, valid_loader, device
         model.update_margin(margins[epoch - 1])
         train_epoch_loss = train_one_epoch(model, optimizer, scheduler, 
                                            dataloader=train_loader, 
-                                           device=config.device, epoch=epoch)
+                                           device=CFG.device, epoch=epoch)
         
-        val_epoch_loss = valid_one_epoch(model, optimizer, valid_loader, device=config.device, epoch=epoch)
+        val_epoch_loss = valid_one_epoch(model, optimizer, valid_loader, device=CFG.device, epoch=epoch)
     
         history['Train Loss'].append(train_epoch_loss)
         history['Valid Loss'].append(val_epoch_loss)
@@ -137,7 +137,7 @@ def run_training(model, optimizer, scheduler, train_loader, valid_loader, device
         print(f"Validation Loss ({best_epoch_loss} ---> {val_epoch_loss})")
         best_epoch_loss = val_epoch_loss
         best_model_wts = copy.deepcopy(model.state_dict())
-        PATH = f"{config.OUT_DIR}{config.model_name}_epoch{epoch}.bin"
+        PATH = f"{CFG.OUT_DIR}{CFG.model_name}_epoch{epoch}.bin"
         torch.save(model.state_dict(), PATH)
         # Save a model file from the current directory
         print(f"Model Saved")

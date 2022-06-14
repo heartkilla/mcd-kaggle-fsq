@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoConfig, AutoModel
 
-import config
+from configs import CFG
 
 
 class ArcMarginProduct(nn.Module):
@@ -47,7 +47,7 @@ class ArcMarginProduct(nn.Module):
             phi = torch.where(cosine > self.th, phi, cosine - self.mm)
         # --------------------------- convert label to one-hot ---------------------
         # one_hot = torch.zeros(cosine.size(), requires_grad=True, device='cuda')
-        one_hot = torch.zeros(cosine.size(), device=config.device)
+        one_hot = torch.zeros(cosine.size(), device=CFG.device)
         one_hot.scatter_(1, label.view(-1, 1).long(), 1)
         if self.ls_eps > 0:
             one_hot = (1 - self.ls_eps) * one_hot + self.ls_eps / self.out_features
@@ -65,17 +65,17 @@ class FSNet(nn.Module):
         self.bert_model = AutoModel.from_pretrained(model_name, config=self.config)
         # self.embedding = nn.Linear(self.config.hidden_size + 2, embedding_size)
 
-        self.fc = nn.Linear(self.bert_model.config.hidden_size, config.fc_dim)
-        self.bn = nn.BatchNorm1d(config.fc_dim)
+        self.fc = nn.Linear(self.bert_model.config.hidden_size, CFG.fc_dim)
+        self.bn = nn.BatchNorm1d(CFG.fc_dim)
         self._init_params()
 
         self.margin = ArcMarginProduct(
-            config.fc_dim,
-            config.n_classes,
-            s=config.s, 
-            m=config.margin, 
-            easy_margin=config.easy_margin,
-            ls_eps=config.ls_eps
+            CFG.fc_dim,
+            CFG.n_classes,
+            s=CFG.s, 
+            m=CFG.margin, 
+            easy_margin=CFG.easy_margin,
+            ls_eps=CFG.ls_eps
         )
 
     def _init_params(self):
@@ -107,17 +107,17 @@ class FSMultiModalNet(nn.Module):
         self.bert_model = AutoModel.from_pretrained(model_name, config=self.config)
         # self.embedding = nn.Linear(self.config.hidden_size + 2, embedding_size)
 
-        self.fc = nn.Linear(self.bert_model.config.hidden_size + num_features, config.fc_dim)
-        self.bn = nn.BatchNorm1d(config.fc_dim)
+        self.fc = nn.Linear(self.bert_model.config.hidden_size + num_features, CFG.fc_dim)
+        self.bn = nn.BatchNorm1d(CFG.fc_dim)
         self._init_params()
 
         self.margin = ArcMarginProduct(
-            config.fc_dim,
-            config.n_classes,
-            s=config.s, 
-            m=config.m_start, 
-            easy_margin=config.easy_margin,
-            ls_eps=config.ls_eps
+            CFG.fc_dim,
+            CFG.n_classes,
+            s=CFG.s, 
+            m=CFG.m_start, 
+            easy_margin=CFG.easy_margin,
+            ls_eps=CFG.ls_eps
         )
 
     def _init_params(self):
@@ -137,7 +137,12 @@ class FSMultiModalNet(nn.Module):
     
     def extract_feature(self, input_ids, attention_mask, lat, lon, coord_x, coord_y, coord_z):
         x = self.bert_model(input_ids=input_ids, attention_mask=attention_mask)
-        x = x.last_hidden_state.mean(dim=1)
+
+        if CFG.simple_mean:  # https://www.kaggle.com/code/lyakaap/2nd-place-solution/notebook
+            x = x.last_hidden_state.mean(dim=1)
+        else:
+            x = torch.sum(x.last_hidden_state * attention_mask.unsqueeze(-1), dim=1) / attention_mask.sum(dim=1, keepdims=True)
+
         # x = torch.cat([x, lat.view(-1, 1), lon.view(-1, 1)], axis=1)
         x = torch.cat([x, coord_x.view(-1, 1), coord_y.view(-1, 1), coord_z.view(-1, 1)], axis=1)
 
