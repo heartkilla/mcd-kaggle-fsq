@@ -11,7 +11,7 @@ INPUT = 'train_filled.csv'
 if not os.path.exists(OUT_DIR):
    os.makedirs(OUT_DIR)
 
-DEBUG = True
+DEBUG = False
 
 seed = 42
 n_neighbors = 3 if DEBUG else 10
