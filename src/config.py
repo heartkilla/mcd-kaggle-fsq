@@ -1,8 +1,8 @@
 import torch
 import transformers
 
-ROOT_DIR = '../input/foursquare-location-matching'
-OUT_DIR = '../output/v30/'
+ROOT_DIR = './input/foursquare-location-matching'
+OUT_DIR = '../output/v37/'
 
 #if not os.path.exists(OUT_DIR):
 #    os.makedirs(OUT_DIR)
@@ -10,16 +10,16 @@ OUT_DIR = '../output/v30/'
 DEBUG = False
 
 seed = 42
-n_neighbors = 3 if DEBUG else 10
+n_neighbors = 3 if DEBUG else 10    
 n_splits = 4
 one_fold = True if DEBUG else True
 
 # Training config
-train_batch_size = 128
-valid_batch_size = 128
-epochs = 25
+train_batch_size = 64
+valid_batch_size = 64
+epochs = 40
 lr = 5e-5
-n_accumulate = 1
+n_accumulate = 2
 max_grad_norm = 1000
 weight_decay = 1e-6
 
@@ -27,9 +27,9 @@ weight_decay = 1e-6
 device = torch.device('cuda')
 
 # Model config
-model_name = "xlm-roberta-base"
+model_name = "xlm-roberta-large"
 tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-max_length = 32
+max_length = 64 
 
 # Metric loss and its params
 loss_module = 'arcface'

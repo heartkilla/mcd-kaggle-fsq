@@ -92,7 +92,12 @@ class FSNet(nn.Module):
     
     def extract_feature(self, input_ids, attention_mask, lat, lon, coord_x, coord_y, coord_z):
         x = self.bert_model(input_ids=input_ids, attention_mask=attention_mask)
-        x = x.last_hidden_state.mean(dim=1)
+        x = x.last_hidden_state
+
+        x = torch.sum(
+            x * attention_mask.unsqueeze(-1), dim=1, keepdim=False
+        )
+        x = x / torch.sum(attention_mask, dim=-1, keepdim=True)
 
         x = self.fc(x)
         x = self.bn(x)
@@ -105,7 +110,10 @@ class FSMultiModalNet(nn.Module):
         super(FSMultiModalNet, self).__init__()
         self.config = AutoConfig.from_pretrained(model_name)
         self.bert_model = AutoModel.from_pretrained(model_name, config=self.config)
+        self.bert_model.gradient_checkpointing_enable() 
         # self.embedding = nn.Linear(self.config.hidden_size + 2, embedding_size)
+
+        print(self.bert_model.config.hidden_size + num_features)
 
         self.fc = nn.Linear(self.bert_model.config.hidden_size + num_features, config.fc_dim)
         self.bn = nn.BatchNorm1d(config.fc_dim)
@@ -137,7 +145,8 @@ class FSMultiModalNet(nn.Module):
     
     def extract_feature(self, input_ids, attention_mask, lat, lon, coord_x, coord_y, coord_z):
         x = self.bert_model(input_ids=input_ids, attention_mask=attention_mask)
-        x = x.last_hidden_state.mean(dim=1)
+        x = torch.sum(x.last_hidden_state * attention_mask.unsqueeze(-1), dim=1) / attention_mask.sum(dim=1, keepdims=True)
+
         # x = torch.cat([x, lat.view(-1, 1), lon.view(-1, 1)], axis=1)
         x = torch.cat([x, coord_x.view(-1, 1), coord_y.view(-1, 1), coord_z.view(-1, 1)], axis=1)
 

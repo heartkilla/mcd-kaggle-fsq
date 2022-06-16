@@ -14,6 +14,8 @@ import engine
 import models
 import utils
 
+from sklearn.neighbors import BallTree
+
 
 warnings.filterwarnings("ignore")
 # For descriptive error messages
@@ -31,6 +33,29 @@ def run():
         for fold, (_, valid_index) in enumerate(kf.split(df, df['id'], df['point_of_interest'])):
             if fold == 5:  # pick only fold 5 for debug
                 df = df.iloc[valid_index].reset_index(drop=True)
+
+
+    for column in df[["latitude", "longitude"]]:
+        rad = np.deg2rad(df[column].values)
+        df[f'{column}_rad'] = rad
+
+    k = 11
+    ball = BallTree(df[["latitude_rad", "longitude_rad"]].values, metric='haversine')
+    D_latlon, I_latlon = ball.query(df[["latitude_rad", "longitude_rad"]].values, k=k)
+
+    D_latlon = D_latlon * 6371  # to km 
+
+    # latlon で近い順に住所関連の NaN を埋めていく
+    fill_columns = ["city", "state", "country"]
+    print("Before fillna")
+    print(df[fill_columns].isnull().sum() / df.shape[0])
+    for i in range(1, 6):  # 自分以外の5点を取る
+        nearest_index = I_latlon[:, i]
+        for c in fill_columns:
+            df[c] = df[c].fillna(df.loc[nearest_index, c].reset_index(drop=True))
+        print(f"Iter {i}")
+        print(df[fill_columns].isnull().sum() / df.shape[0])
+
                 
     for col in ["name", "address", "city", "state", "zip", "country", "url", "phone", "categories"]:
         df[col] = df[col].fillna("")
@@ -40,8 +65,8 @@ def run():
     ).replace(r'\s+', ' ', regex=True)
 
     # preprocess of string
-    df["fulltext"] = df["fulltext"].str.lower()  # lowercase
-    df["fulltext"] = df["fulltext"].str.replace(r'[^\w\s]+', '')  # remove punctuation
+    #df["fulltext"] = df["fulltext"].str.lower()  # lowercase
+    #df["fulltext"] = df["fulltext"].str.replace(r'[^\w\s]+', '')  # remove punctuation
 
     # Standardization of coordinates.
     # https://datascience.stackexchange.com/questions/13567/ways-to-deal-with-longitude-latitude-feature
@@ -74,8 +99,8 @@ def run():
                        
     scheduler = get_linear_schedule_with_warmup(
         optimizer, 
-        num_warmup_steps=len(train_loader) * 2, 
-        num_training_steps=len(train_loader) * config.epochs
+        num_warmup_steps=len(train_loader) * 4 // config.n_accumulate, 
+        num_training_steps=len(train_loader) * config.epochs // config.n_accumulate
     )
 
     model, history = engine.run_training(
