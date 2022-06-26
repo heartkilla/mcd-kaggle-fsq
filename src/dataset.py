@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-import configs.config001 as CFG
+from configs import CFG
 
 
 class FourSquareDataset(Dataset):

@@ -11,7 +11,7 @@ INPUT = 'train_filled.csv'
 if not os.path.exists(OUT_DIR):
    os.makedirs(OUT_DIR)
 
-DEBUG = False
+DEBUG = True
 
 seed = 42
 n_neighbors = 3 if DEBUG else 10
@@ -19,14 +19,15 @@ n_splits = 4
 one_fold = True if DEBUG else True
 
 # Training config
-train_batch_size = 128
-valid_batch_size = 128
+train_batch_size = 256
+valid_batch_size = 256
 epochs = 40
 lr = 5e-5
-n_accumulate = 1
+n_accumulate = 2
 max_grad_norm = 1000
 weight_decay = 1e-6
 warmup_epochs = 4
+gradient_checkpointing = True
 
 # TO DO: move this away from config
 device = torch.device('cuda')

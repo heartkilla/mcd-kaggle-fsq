@@ -1,5 +1,5 @@
-import gc
 import copy
+import gc
 import time
 from collections import defaultdict
 
@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-import configs.config001 as CFG
+from configs import CFG
 
 
 def criterion(outputs, labels):
@@ -137,10 +137,10 @@ def run_training(model, optimizer, scheduler, train_loader, valid_loader, device
         print(f"Validation Loss ({best_epoch_loss} ---> {val_epoch_loss})")
         best_epoch_loss = val_epoch_loss
         best_model_wts = copy.deepcopy(model.state_dict())
-        PATH = f"{CFG.OUT_DIR}{CFG.model_name}_epoch{epoch}.bin"
+        PATH = f"{CFG.OUT_DIR}{CFG.model_name.replace('/', '-')}_epoch{epoch}.bin"
         torch.save(model.state_dict(), PATH)
         # Save a model file from the current directory
-        print(f"Model Saved")
+        print(f"Model Saved >>> {PATH}")
             
         print()
     

@@ -105,6 +105,8 @@ class FSMultiModalNet(nn.Module):
         super(FSMultiModalNet, self).__init__()
         self.config = AutoConfig.from_pretrained(model_name)
         self.bert_model = AutoModel.from_pretrained(model_name, config=self.config)
+        if CFG.gradient_checkpointing:
+            self.bert_model.gradient_checkpointing_enable() 
         # self.embedding = nn.Linear(self.config.hidden_size + 2, embedding_size)
 
         self.fc = nn.Linear(self.bert_model.config.hidden_size + num_features, CFG.fc_dim)
