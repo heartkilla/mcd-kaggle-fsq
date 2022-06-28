@@ -19,8 +19,8 @@ n_splits = 4
 one_fold = True if DEBUG else True
 
 # Training config
-train_batch_size = 128
-valid_batch_size = 128
+train_batch_size = 320
+valid_batch_size = 320
 epochs = 40
 lr = 5e-5
 n_accumulate = 4
@@ -33,7 +33,7 @@ gradient_checkpointing = True
 device = torch.device('cuda')
 
 # Model config
-model_name = "xlm-roberta-large"
+model_name = "xlm-roberta-base"
 tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
 max_length = 64
 simple_mean = False
@@ -42,7 +42,7 @@ simple_mean = False
 loss_module = 'arcface'
 s = 30.0
 m_start = 0.2 
-m_end = 0.6
+m_end = 0.8
 ls_eps = 0.0
 easy_margin = False
 
