@@ -3,9 +3,10 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import GroupKFold, train_test_split
-from sklearn.preprocessing import LabelEncoder
 import torch.optim as optim
+from sklearn.model_selection import GroupKFold, train_test_split
+from sklearn.neighbors import BallTree
+from sklearn.preprocessing import LabelEncoder
 from transformers import get_linear_schedule_with_warmup
 
 import config
@@ -13,9 +14,6 @@ import dataset
 import engine
 import models
 import utils
-
-from sklearn.neighbors import BallTree
-
 
 warnings.filterwarnings("ignore")
 # For descriptive error messages
@@ -26,7 +24,7 @@ def run():
     if not os.path.exists(config.OUT_DIR):
         os.makedirs(config.OUT_DIR)
 
-    df = pd.read_csv(f"{config.ROOT_DIR}/train.csv")
+    df = pd.read_csv(f"{config.ROOT_DIR}/train_filled.csv")
 
     if config.DEBUG:
         kf = GroupKFold(n_splits=11)
@@ -34,29 +32,6 @@ def run():
             if fold == 5:  # pick only fold 5 for debug
                 df = df.iloc[valid_index].reset_index(drop=True)
 
-
-    for column in df[["latitude", "longitude"]]:
-        rad = np.deg2rad(df[column].values)
-        df[f'{column}_rad'] = rad
-
-    k = 11
-    ball = BallTree(df[["latitude_rad", "longitude_rad"]].values, metric='haversine')
-    D_latlon, I_latlon = ball.query(df[["latitude_rad", "longitude_rad"]].values, k=k)
-
-    D_latlon = D_latlon * 6371  # to km 
-
-    # latlon で近い順に住所関連の NaN を埋めていく
-    fill_columns = ["city", "state", "country"]
-    print("Before fillna")
-    print(df[fill_columns].isnull().sum() / df.shape[0])
-    for i in range(1, 6):  # 自分以外の5点を取る
-        nearest_index = I_latlon[:, i]
-        for c in fill_columns:
-            df[c] = df[c].fillna(df.loc[nearest_index, c].reset_index(drop=True))
-        print(f"Iter {i}")
-        print(df[fill_columns].isnull().sum() / df.shape[0])
-
-                
     for col in ["name", "address", "city", "state", "zip", "country", "url", "phone", "categories"]:
         df[col] = df[col].fillna("")
 

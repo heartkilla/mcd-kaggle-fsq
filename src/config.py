@@ -1,11 +1,13 @@
+import os
+
 import torch
 import transformers
 
-ROOT_DIR = './input/foursquare-location-matching'
-OUT_DIR = '../output/v37/'
+ROOT_DIR = '../input/foursquare-location-matching'
+OUT_DIR = '../output/xlm-r-b/'
 
-#if not os.path.exists(OUT_DIR):
-#    os.makedirs(OUT_DIR)
+if not os.path.exists(OUT_DIR):
+   os.makedirs(OUT_DIR)
 
 DEBUG = False
 
@@ -15,9 +17,9 @@ n_splits = 4
 one_fold = True if DEBUG else True
 
 # Training config
-train_batch_size = 64
-valid_batch_size = 64
-epochs = 40
+train_batch_size = 512
+valid_batch_size = 512
+epochs = 50
 lr = 5e-5
 n_accumulate = 2
 max_grad_norm = 1000
@@ -44,4 +46,4 @@ n_classes = 739972  # df["point_of_interest"].nunique() = 739972
 pooling = 'clf'
 use_fc = False
 dropout = 0.0
-fc_dim = 320
+fc_dim = 512
